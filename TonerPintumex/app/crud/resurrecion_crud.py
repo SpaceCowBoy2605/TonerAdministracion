@@ -6,19 +6,16 @@ except Exception:
     import db
 
 try:
-    from app.models.resurrecion import Resurrecion
+    from app.models.resu import Resurrecion
 except Exception:
-    from models.resurrecion import Resurrecion
+    from models.resu import Resurrecion
 
 def get_resurrecion_by_id(idResu: int) -> Optional[Resurrecion]:
-    """Recupera una resurrecion por id usando la conexión definida en app/db.py.
 
-    Retorna una instancia de `Resurrecion` o `None` si no existe.
-    """
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idResu AS idResu, nombreResu FROM Resurrecion WHERE idResu = %s",
+            "SELECT idResu AS id, nombreResu FROM resurreccion WHERE idResu = %s",
             (idResu,)
         )
         row = cur.fetchone()
