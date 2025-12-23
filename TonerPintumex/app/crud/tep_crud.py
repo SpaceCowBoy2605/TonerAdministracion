@@ -6,16 +6,16 @@ except Exception:
     import db
 
 try:
-    from app.models.planta import Planta
+    from app.models.tep import Tep
 except Exception:
-    from models.planta import Planta
+    from models.tep import Tep
 
-def get_tep_by_id(idTep: int) -> Optional[Planta]:
+def get_tep_by_id(idTep: int) -> Optional[Tep]:
 
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idTep AS id, nombreTep FROM tep WHERE idTep = %s",
+            "SELECT idTep AS id, nombreTep FROM teps WHERE idTep = %s",
             (idTep,)
         )
         row = cur.fetchone()
@@ -25,4 +25,4 @@ def get_tep_by_id(idTep: int) -> Optional[Planta]:
     if not row:
         return None
 
-    return Planta(**row)
+    return Tep(**row)

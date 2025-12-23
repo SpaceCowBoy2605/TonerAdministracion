@@ -4,8 +4,6 @@ import importlib
 import os
 import sys
 
-# Ensure project root is on sys.path so `importlib.import_module('app.routes')`
-# works when running this file directly (python app/app.py).
 _ROOT = os.path.dirname(os.path.dirname(__file__))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
