@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify
 
 cedis_bp = Blueprint('Cedis', __name__)
 
-
 @cedis_bp.route('/cedis/<int:id>', methods=['GET'])
 def api_get_cedis(id):
     # importe aquí para evitar importaciones circulares
