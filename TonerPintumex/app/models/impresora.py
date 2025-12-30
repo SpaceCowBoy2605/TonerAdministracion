@@ -8,5 +8,5 @@ class Impresora(BaseModel):
     idAccesorio: Optional[int] = None
     idCedis: Optional[int] = None
     idPlanta: Optional[int] = None
-    idResurreccion: Optional[int] = None
+    idResu: Optional[int] = None
     idTep: Optional[int] = None

@@ -20,3 +20,38 @@ def api_get_impresora(id):
     if not Impresora:
         return jsonify({'error': 'No encontrado'}), 404
     return jsonify(Impresora.dict()), 200
+
+@imporesora_bp.route('/impresora/crear', methods=['POST'])
+def api_create_impresora():
+
+    from crud.impresora_crud import create_impresora
+    from flask import request
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Datos inválidos"}), 400
+    impresora = create_impresora(data)
+    return jsonify({"message": "Impresora creada", "impresora": impresora}), 200
+
+@imporesora_bp.route('/impresora/actualizar/<int:id>', methods=['PUT'])
+def api_update_impresora(id):
+
+    from crud.impresora_crud import update_impresora
+    from flask import request
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Datos inválidos"}), 400
+    success = update_impresora(id, data)
+    if not success:
+        return jsonify({"error": "Impresora no encontrada"}), 404
+    return jsonify({"message": "Impresora actualizada"}), 200
+
+
+@imporesora_bp.route('/impresora/eliminar/<int:id>', methods=['DELETE'])
+def api_delete_impresora(id):
+
+    from crud.impresora_crud import delete_impresora
+    success = delete_impresora(id)
+    if not success:
+        return jsonify({"error": "Impresora no encontrada"}), 404
+    return jsonify({"message": "Impresora eliminada"}), 200
+

@@ -1,4 +1,10 @@
 from typing import Optional
+import os
+
+try:
+    import qrcode
+except Exception:
+    qrcode = None
 
 try:
     from app import db
@@ -59,7 +65,24 @@ def create_accesorio(data: dict) -> dict:
     finally:
         cur.close()
 
-    return accesorio.dict()
+    qr_path = None
+    try:
+        if qrcode is not None:
+            qr_dir = os.path.join(os.getcwd(), 'accesorio_qrcodes')
+            os.makedirs(qr_dir, exist_ok=True)
+            content = f"{accesorio.nombreAccesorio} - {accesorio.entrada}"
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(content)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color='black', back_color='white')
+            filename = f"accesorio_{accesorio.id}.png"
+            qr_path = os.path.join(qr_dir, filename)
+            img.save(qr_path)
+    except Exception:
+        qr_path = None
+
+    result = accesorio.dict()
+    return result
 
 def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
     """Actualiza un accesorio con `data` en la BD. Devuelve el dict del accesorio actualizado o None si no existe."""
