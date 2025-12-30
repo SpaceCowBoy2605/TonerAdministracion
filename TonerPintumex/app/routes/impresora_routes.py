@@ -2,6 +2,16 @@ from flask import Blueprint, jsonify
 
 imporesora_bp = Blueprint('Imporesora', __name__)
 
+@imporesora_bp.route('/impresora', methods=['GET'])
+def api_get_all_impresoras():
+
+    from crud.impresora_crud import get_all_impresora
+    impresoras = get_all_impresora()
+    if not impresoras:
+        return jsonify([]), 200
+    return jsonify([impresora.dict() for impresora in impresoras]), 200
+
+
 @imporesora_bp.route('/impresora/<int:id>', methods=['GET'])
 def api_get_impresora(id):
     # importe aquí para evitar importaciones circulares
