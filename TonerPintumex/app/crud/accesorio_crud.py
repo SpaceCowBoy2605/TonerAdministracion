@@ -1,5 +1,6 @@
 from typing import Optional
 import os
+import json
 
 try:
     import qrcode
@@ -20,7 +21,7 @@ def get_all_accesorio() -> Optional[Accesorio]:
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idAccesorio AS id, nombreAccesorio, cantidad, status, entrada FROM accesorio"
+            "SELECT idAccesorio AS id, nombreAccesorio, cantidad, idEstatus, entrada, idfactura FROM accesorio"
         )
         rows = cur.fetchall()
     finally:
@@ -37,7 +38,7 @@ def get_accesorio_by_id(idAccesorio: int) -> Optional[Accesorio]:
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idAccesorio AS id, nombreAccesorio, cantidad, status, entrada FROM accesorio WHERE idAccesorio = %s",
+            "SELECT idAccesorio AS id, nombreAccesorio, cantidad, idEstatus, entrada, idfactura FROM accesorio WHERE idAccesorio = %s",
             (idAccesorio,)
         )
         row = cur.fetchone()
@@ -57,8 +58,8 @@ def create_accesorio(data: dict) -> dict:
     cur = db.mydb.cursor()
     try:
         cur.execute(
-            "INSERT INTO accesorio (nombreAccesorio, cantidad, status, entrada) VALUES (%s, %s, %s, %s)",
-            (accesorio.nombreAccesorio, accesorio.cantidad, accesorio.status, accesorio.entrada)
+            "INSERT INTO accesorio (nombreAccesorio, cantidad, idEstatus, entrada, idfactura) VALUES (%s, %s, %s, %s, %s)",
+            (accesorio.nombreAccesorio, accesorio.cantidad, accesorio.idEstatus, accesorio.entrada, accesorio.idfactura)
         )
         db.mydb.commit()
         accesorio.id = cur.lastrowid
@@ -70,7 +71,12 @@ def create_accesorio(data: dict) -> dict:
         if qrcode is not None:
             qr_dir = os.path.join(os.getcwd(), 'accesorio_qrcodes')
             os.makedirs(qr_dir, exist_ok=True)
-            content = f"{accesorio.nombreAccesorio} - {accesorio.entrada}"
+            # Contenido multilínea con etiquetas
+            content = (
+                f"{accesorio.nombreAccesorio}\n"
+                f"{accesorio.entrada}\n"
+                f"{accesorio.idfactura}"
+            )
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(content)
             qr.make(fit=True)
@@ -82,6 +88,7 @@ def create_accesorio(data: dict) -> dict:
         qr_path = None
 
     result = accesorio.dict()
+    result['qr_path'] = qr_path
     return result
 
 def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
@@ -96,8 +103,8 @@ def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
     cur = db.mydb.cursor()
     try:
         cur.execute(
-            "UPDATE accesorio SET nombreAccesorio = %s, cantidad = %s, status = %s, entrada = %s WHERE idAccesorio = %s",
-            (accesorio.nombreAccesorio, accesorio.cantidad, accesorio.status, accesorio.entrada, idAccesorio)
+            "UPDATE accesorio SET nombreAccesorio = %s, cantidad = %s, idEstatus = %s, entrada = %s, idfactura = %s WHERE idAccesorio = %s",
+            (accesorio.nombreAccesorio, accesorio.cantidad, accesorio.idEstatus, accesorio.entrada, accesorio.idfactura, idAccesorio)
         )
         db.mydb.commit()
     finally:

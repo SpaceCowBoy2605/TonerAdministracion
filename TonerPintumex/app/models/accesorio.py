@@ -7,5 +7,6 @@ class Accesorio(BaseModel):
     id: Optional[int] = None
     nombreAccesorio: str
     cantidad : int
-    status: int
+    idEstatus: int
     entrada: datetime
+    idfactura: Optional[int] = None
