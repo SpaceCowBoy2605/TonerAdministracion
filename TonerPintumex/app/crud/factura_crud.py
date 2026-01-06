@@ -41,3 +41,19 @@ def get_all_factura() -> Optional[Factura]:
 
     facturas = [Factura(**row) for row in rows]
     return facturas
+
+def create_factura(data: dict) -> dict:
+    factura = Factura(**data)
+    
+    cur = db.mydb.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO factura (fecha) VALUES (%s)",
+            (factura.fecha,)
+        )
+        db.mydb.commit()
+        new_id = cur.lastrowid
+    finally:
+        cur.close()
+
+    return get_factura_by_id(new_id)

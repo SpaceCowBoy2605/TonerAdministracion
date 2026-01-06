@@ -1,21 +1,33 @@
 from flask import Blueprint, jsonify
 
-estatus_bp = Blueprint('Estatus', __name__)
+factura_bp = Blueprint('Factura', __name__)
 
-@estatus_bp.route('/estatus/<int:id>', methods=['GET'])
-def api_get_estatus(id):
+@factura_bp.route('/factura/<int:id>', methods=['GET'])
+def api_get_factura(id):
     # importe aquí para evitar importaciones circulares
-    from crud.esatus_crud import get_estatus_by_id
-    Estatus = get_estatus_by_id(id)
-    if not Estatus:
+    from crud.factura_crud import get_factura_by_id
+    Factura = get_factura_by_id(id)
+    if not Factura:
         return jsonify({'error': 'No encontrado'}), 404
-    return jsonify(Estatus.dict()), 200
+    return jsonify(Factura.dict()), 200
 
-@estatus_bp.route('/estatus', methods=['GET'])
-def api_get_all_estatus():
+@factura_bp.route('/factura', methods=['GET'])
+def api_get_all_factura():
     # importe aquí para evitar importaciones circulares
     from crud.esatus_crud import get_all_estatus
     Estatus_list = get_all_estatus()
     if not Estatus_list:
         return jsonify({'error': 'No encontrado'}), 404
     return jsonify([estatus.dict() for estatus in Estatus_list]), 200
+
+
+@factura_bp.route('/factura/crear', methods=['POST'])
+def api_create_factura():
+    from flask import request
+    from crud.factura_crud import create_factura
+
+    data = request.get_json()
+    new_factura = create_factura(data)
+    if not new_factura:
+        return jsonify({'error': 'No se pudo crear'}), 400
+    return jsonify(new_factura.dict()), 201

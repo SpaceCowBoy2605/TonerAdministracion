@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date
 
-class Estatus(BaseModel):
+class Factura(BaseModel):
     id: Optional[int] = None
-    fecha: str
+    fecha: date
