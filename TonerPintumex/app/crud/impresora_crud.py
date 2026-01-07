@@ -1,5 +1,6 @@
 from typing import Optional
 import os
+import logging
 
 try:
     import qrcode
@@ -76,10 +77,16 @@ def create_impresora(data: dict) -> dict:
     # Generar QR con nombre y modelo (si está disponible la librería)
     qr_path = None
     try:
-        if qrcode is not None:
-            qr_dir = os.path.join(os.getcwd(), 'impresora_qrcodes')
+        if qrcode is None:
+            logging.warning("qrcode library not available — no QR will be generated for impresora %s", getattr(impresora, 'id', None))
+        else:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            qr_dir = os.path.join(base_dir, 'impresora_qrcodes')
             os.makedirs(qr_dir, exist_ok=True)
-            content = f"{impresora.nombreImpresora} - {impresora.modelo }"
+            content = (
+                f" - {impresora.modelo}\n"
+                f" - {impresora.modelo}{impresora.nombreImpresora}"
+            )
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(content)
             qr.make(fit=True)
@@ -88,10 +95,11 @@ def create_impresora(data: dict) -> dict:
             qr_path = os.path.join(qr_dir, filename)
             img.save(qr_path)
     except Exception:
+        logging.exception("Failed to generate QR for impresora %s", getattr(impresora, 'id', None))
         qr_path = None
 
     result = impresora.dict()
-    # result['qr_path'] = qr_path
+    result['qr_path'] = qr_path
     return result
 
 

@@ -1,2 +1,18 @@
 **/*.pyc
 **/__pycache__/
+
+# Ignore generated images and QR folders
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.webp
+*.tif
+*.tiff
+*.heic
+*.ico
+
+# QR code output folders
+impresora_qrcodes/
+accesorio_qrcodes/

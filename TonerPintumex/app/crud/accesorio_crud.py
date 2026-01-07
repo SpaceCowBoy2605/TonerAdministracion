@@ -1,6 +1,7 @@
 from typing import Optional
 import os
 import json
+import logging
 
 try:
     import qrcode
@@ -68,8 +69,11 @@ def create_accesorio(data: dict) -> dict:
 
     qr_path = None
     try:
-        if qrcode is not None:
-            qr_dir = os.path.join(os.getcwd(), 'accesorio_qrcodes')
+        if qrcode is None:
+            logging.warning("qrcode library not available — no QR will be generated for accesorio %s", getattr(accesorio, 'id', None))
+        else:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            qr_dir = os.path.join(base_dir, 'accesorio_qrcodes')
             os.makedirs(qr_dir, exist_ok=True)
             # Contenido multilínea con etiquetas
             content = (
@@ -85,6 +89,7 @@ def create_accesorio(data: dict) -> dict:
             qr_path = os.path.join(qr_dir, filename)
             img.save(qr_path)
     except Exception:
+        logging.exception("Failed to generate QR for accesorio %s", getattr(accesorio, 'id', None))
         qr_path = None
 
     result = accesorio.dict()

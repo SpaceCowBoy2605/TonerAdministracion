@@ -14,11 +14,11 @@ def api_get_factura(id):
 @factura_bp.route('/factura', methods=['GET'])
 def api_get_all_factura():
     # importe aquí para evitar importaciones circulares
-    from crud.esatus_crud import get_all_estatus
-    Estatus_list = get_all_estatus()
-    if not Estatus_list:
+    from crud.factura_crud import get_all_factura
+    Factura_list = get_all_factura()
+    if not Factura_list:
         return jsonify({'error': 'No encontrado'}), 404
-    return jsonify([estatus.dict() for estatus in Estatus_list]), 200
+    return jsonify([factura.dict() for factura in Factura_list]), 200
 
 
 @factura_bp.route('/factura/crear', methods=['POST'])
