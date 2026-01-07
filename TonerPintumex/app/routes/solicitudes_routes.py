@@ -23,12 +23,17 @@ def api_get_solicitudes(id):
 @solicitudes_bp.route('/solicitudes/crear', methods=['POST'])
 def api_create_solicitudes():
     # importe aquí para evitar importaciones circulares
-    from crud.solicitudes_crud import create_solicitudes
+    from services.solicitudes_service import create_solicitud_with_rules
     from flask import request
     data = request.get_json()
     if not data:
         return jsonify({"error": "Datos inválidos"}), 400
-    solicitud = create_solicitudes(data)
+    try:
+        solicitud = create_solicitud_with_rules(data)
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception:
+        return jsonify({"error": "Error interno al crear la solicitud"}), 500
     return jsonify({"message": "Solicitud creada", "solicitud": solicitud}), 200
 
 @solicitudes_bp.route('/solicitudes/actualizar/<int:id>', methods=['PUT'])

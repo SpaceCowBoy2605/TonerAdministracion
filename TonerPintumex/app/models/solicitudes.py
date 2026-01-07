@@ -9,7 +9,7 @@ class Solicitudes(BaseModel):
     cantidad: int
     fechaSolicitud: datetime
     centroCostos: str 
-    idPlanta: int
-    idResu: int
-    idCedis: int 
-    idTep: int
+    idPlanta: Optional[int] = None
+    idResu: Optional[int] = None
+    idCedis: Optional[int] = None 
+    idTep: Optional[int] = None
