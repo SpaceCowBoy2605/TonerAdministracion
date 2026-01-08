@@ -29,12 +29,14 @@ def create_solicitud_with_rules(data: dict) -> dict:
             raise ValueError('idAccesorio y cantidad son requeridos')
 
         # Bloquear fila del accesorio para evitar race conditions
-        cur.execute("SELECT cantidad FROM accesorio WHERE idAccesorio = %s FOR UPDATE", (idAcc,))
+        # Obtener también idfactura para registro en historial
+        cur.execute("SELECT cantidad, idfactura FROM accesorio WHERE idAccesorio = %s FOR UPDATE", (idAcc,))
         row = cur.fetchone()
         if not row:
             raise ValueError('Accesorio no encontrado')
 
         cantidad_actual = row.get('cantidad')
+        idfactura = row.get('idfactura')
         if cantidad_actual is None:
             raise ValueError('Accesorio sin cantidad definida')
 
@@ -43,8 +45,14 @@ def create_solicitud_with_rules(data: dict) -> dict:
 
         nueva_cantidad = cantidad_actual - cantidad_solicitada
 
-        # Actualizar cantidad del accesorio
-        cur.execute("UPDATE accesorio SET cantidad = %s WHERE idAccesorio = %s", (nueva_cantidad, idAcc))
+        # Determinar estatus según nueva cantidad y actualizar accesorio
+        if nueva_cantidad >= 10:
+            new_estatus = 1
+        elif nueva_cantidad >= 3:
+            new_estatus = 2
+        else:
+            new_estatus = 3
+        cur.execute("UPDATE accesorio SET cantidad = %s, idEstatus = %s WHERE idAccesorio = %s", (nueva_cantidad, new_estatus, idAcc))
 
         # Preparar campos para insertar solicitud
         fecha = data.get('fechaSolicitud')
@@ -67,6 +75,15 @@ def create_solicitud_with_rules(data: dict) -> dict:
             "INSERT INTO solicitudes (idAccesorio, idImpresora, cantidad, fechaSolicitud, centroCostos, idPlanta, idResu, idCedis, idTep) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
             insert_values
         )
+        # Registrar en historialAccesorios el movimiento (donde 'cantidad' es la cantidad movida)
+        try:
+            cur.execute(
+                "INSERT INTO historialAccesorios (idfactura, idAccesorio, fecha, cantidad) VALUES (%s, %s, %s, %s)",
+                (idfactura, idAcc, fecha, cantidad_solicitada)
+            )
+        except Exception:
+            # Si la tabla o campos no existen, registramos y continuamos (no queremos fallar la operación por el historial)
+            logging.exception('Failed to insert into historialAccesorios')
         db.mydb.commit()
         nueva_id = cur.lastrowid
 

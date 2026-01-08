@@ -2,6 +2,7 @@ from typing import Optional
 import os
 import json
 import logging
+from datetime import datetime
 
 try:
     import qrcode
@@ -101,6 +102,26 @@ def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
     accesorio = get_accesorio_by_id(idAccesorio)
     if not accesorio:
         return None
+    # Guardar cantidad antigua para registrar movimiento en historial
+    cantidad_antigua = accesorio.cantidad
+    idfactura_antigua = accesorio.idfactura
+
+    # Si la request incluye 'cantidad', interpretarla como delta a sumar (no reemplazo)
+    if 'cantidad' in data and data['cantidad'] is not None:
+        try:
+            delta = int(data['cantidad'])
+        except Exception:
+            delta = 0
+        accesorio.cantidad = (cantidad_antigua or 0) + delta
+        # Calcular estatus según la nueva cantidad (>=10:1, 3-9:2, <3:3)
+        if accesorio.cantidad >= 10:
+            accesorio.idEstatus = 1
+        elif accesorio.cantidad >= 3:
+            accesorio.idEstatus = 2
+        else:
+            accesorio.idEstatus = 3
+        # eliminar la clave para no volver a aplicarla en el bucle siguiente
+        data = {k: v for k, v in data.items() if k != 'cantidad'}
 
     for key, value in data.items():
         setattr(accesorio, key, value)
@@ -111,6 +132,34 @@ def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
             "UPDATE accesorio SET nombreAccesorio = %s, cantidad = %s, idEstatus = %s, entrada = %s, idfactura = %s WHERE idAccesorio = %s",
             (accesorio.nombreAccesorio, accesorio.cantidad, accesorio.idEstatus, accesorio.entrada, accesorio.idfactura, idAccesorio)
         )
+
+        # Si la cantidad cambió, registrar la actualización en historialAccesorios
+        try:
+            nueva_cantidad = accesorio.cantidad
+            if nueva_cantidad != cantidad_antigua:
+                # registrar el delta (puede ser positivo o negativo)
+                movimiento = nueva_cantidad - (cantidad_antigua or 0)
+                fecha = datetime.now()
+                cur.execute(
+                    "INSERT INTO historialAccesorios (idfactura, idAccesorio, fecha, cantidad) VALUES (%s, %s, %s, %s)",
+                    (idfactura_antigua, idAccesorio, fecha, movimiento)
+                )
+            # Asegurarse de que idEstatus esté actualizado también si no vino en data
+            # si el usuario pasó idEstatus explícito, lo respetamos; si no, ya lo hemos calculado arriba cuando se proporcionó 'cantidad'
+            if 'idEstatus' not in data:
+                # recalcular por si la cantidad fue modificada por otros campos
+                if accesorio.cantidad >= 10:
+                    accesorio.idEstatus = 1
+                elif accesorio.cantidad >= 3:
+                    accesorio.idEstatus = 2
+                else:
+                    accesorio.idEstatus = 3
+        except Exception:
+            # Si falla el registro en historial, hacemos rollback para asegurar consistencia
+            db.mydb.rollback()
+            logging.exception("Failed to insert historialAccesorios during accesorio update for %s", idAccesorio)
+            raise
+
         db.mydb.commit()
     finally:
         cur.close()
