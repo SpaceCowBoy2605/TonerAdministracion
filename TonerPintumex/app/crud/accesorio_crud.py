@@ -78,6 +78,7 @@ def create_accesorio(data: dict) -> dict:
             os.makedirs(qr_dir, exist_ok=True)
             # Contenido multilínea con etiquetas
             content = (
+                f"{accesorio.id}\n"
                 f"{accesorio.nombreAccesorio}\n"
                 f"{accesorio.entrada}\n"
                 f"{accesorio.idfactura}"

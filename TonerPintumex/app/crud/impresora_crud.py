@@ -84,8 +84,8 @@ def create_impresora(data: dict) -> dict:
             qr_dir = os.path.join(base_dir, 'impresora_qrcodes')
             os.makedirs(qr_dir, exist_ok=True)
             content = (
-                f" - {impresora.modelo}\n"
-                f" - {impresora.modelo}{impresora.nombreImpresora}"
+                f"{impresora.id}\n"
+                f"{impresora.nombreImpresora} - {impresora.modelo}"
             )
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(content)
