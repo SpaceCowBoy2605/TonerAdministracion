@@ -1,4 +1,7 @@
 from flask import Flask, jsonify
+
+from flask_cors import CORS
+
 import pkgutil
 import importlib
 import os
@@ -9,6 +12,8 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 app = Flask(__name__)
+CORS(app)
+
 
 @app.route('/')
 def home():
