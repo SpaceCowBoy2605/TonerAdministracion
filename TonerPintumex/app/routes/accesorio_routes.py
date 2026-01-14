@@ -2,6 +2,25 @@ from flask import Blueprint, jsonify
 
 accesorio_bp = Blueprint('accesorio', __name__)
 
+
+def _dump_accesorio(model):
+    """Serializa un accesorio evitando duplicar ids cuando hay objetos anidados."""
+    if hasattr(model, "model_dump"):
+        data = model.model_dump()
+    else:
+        data = model.dict()
+
+    if data.get("estatus") is not None:
+        data.pop("idEstatus", None)
+    if data.get("factura") is not None:
+        data.pop("idfactura", None)
+
+    for k in ("idEstatus", "idfactura"):
+        if data.get(k) is None:
+            data.pop(k, None)
+
+    return data
+
 @accesorio_bp.route('/accesorio', methods=['GET'])
 def api_get_all_accesorios():
     # importe aquí para evitar importaciones circulares
@@ -9,7 +28,7 @@ def api_get_all_accesorios():
     accesorios = get_all_accesorio()
     if not accesorios:
         return jsonify([]), 200
-    return jsonify([accesorio.dict() for accesorio in accesorios]), 200
+    return jsonify([_dump_accesorio(accesorio) for accesorio in accesorios]), 200
 
 @accesorio_bp.route('/accesorio/<int:id>', methods=['GET'])
 def api_get_accesorio(id):
@@ -18,7 +37,7 @@ def api_get_accesorio(id):
     accesorio = get_accesorio_by_id(id)
     if not accesorio:
         return jsonify({'error': 'No encontrado'}), 404
-    return jsonify(accesorio.dict()), 200
+    return jsonify(_dump_accesorio(accesorio)), 200
 
 @accesorio_bp.route('/accesorio/crear', methods=['POST'])
 def api_create_accesorio():
