@@ -17,12 +17,85 @@ try:
 except Exception:
     from models.impresora import Impresora
 
+def _row_to_impresora_dict(row: dict) -> dict:
+    """Convierte una fila (con aliases de JOIN) a un dict compatible con `Impresora`."""
 
-def get_all_impresora() -> Optional[Impresora]:
+    out: dict = {k: row.get(k) for k in (
+        "id",
+        "nombreImpresora",
+        "modelo",
+        "idAccesorio",
+        "idCedis",
+        "idPlanta",
+        "idResu",
+        "idTep",
+    )}
+
+    def attach(name: str, id_key: str, fields: dict[str, str]) -> None:
+        rel_id = row.get(id_key)
+        if rel_id is None:
+            return
+        out[name] = {"id": rel_id, **{k: row.get(v) for k, v in fields.items()}}
+
+    attach(
+        "accesorio",
+        "acc_id",
+        {
+            "nombreAccesorio": "acc_nombreAccesorio",
+            "cantidad": "acc_cantidad",
+            "idEstatus": "acc_idEstatus",
+            "entrada": "acc_entrada",
+            "idfactura": "acc_idfactura",
+        },
+    )
+    attach("cedis", "ced_id", {"nombreCedis": "ced_nombreCedis"})
+    attach("planta", "pla_id", {"nombrePlanta": "pla_nombrePlanta"})
+    attach("resu", "res_id", {"nombreResu": "res_nombreResu"})
+    attach("tep", "tep_id", {"nombreTep": "tep_nombreTep"})
+
+    return out
+
+
+def get_all_impresora() -> Optional[list[Impresora]]:
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idImpresora AS id, nombreImpresora, modelo FROM impresora"
+            """
+            SELECT
+                i.idImpresora AS id,
+                i.nombreImpresora,
+                i.modelo,
+                i.idAccesorio,
+                i.idCedis,
+                i.idPlanta,
+                i.idResu,
+                i.idTep,
+
+                a.idAccesorio AS acc_id,
+                a.nombreAccesorio AS acc_nombreAccesorio,
+                a.cantidad AS acc_cantidad,
+                a.idEstatus AS acc_idEstatus,
+                a.entrada AS acc_entrada,
+                a.idfactura AS acc_idfactura,
+
+                c.idCedis AS ced_id,
+                c.nombreCedis AS ced_nombreCedis,
+
+                p.idPlanta AS pla_id,
+                p.nombrePlanta AS pla_nombrePlanta,
+
+                r.idResu AS res_id,
+                r.nombreResu AS res_nombreResu,
+
+                t.idTep AS tep_id,
+                t.nombreTep AS tep_nombreTep
+            FROM impresora i
+            LEFT JOIN accesorio a ON i.idAccesorio = a.idAccesorio
+            LEFT JOIN cedis c ON i.idCedis = c.idCedis
+            LEFT JOIN planta p ON i.idPlanta = p.idPlanta
+            LEFT JOIN resurreccion r ON i.idResu = r.idResu
+            LEFT JOIN teps t ON i.idTep = t.idTep
+            """
         )
         rows = cur.fetchall()
     finally:
@@ -31,7 +104,7 @@ def get_all_impresora() -> Optional[Impresora]:
     if not rows:
         return None
 
-    impresoras = [Impresora(**row) for row in rows]
+    impresoras = [Impresora(**_row_to_impresora_dict(row)) for row in rows]
     return impresoras
 
 def get_impresora_by_id(idImpresora: int) -> Optional[Impresora]:
@@ -39,8 +112,44 @@ def get_impresora_by_id(idImpresora: int) -> Optional[Impresora]:
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idImpresora AS id, nombreImpresora, modelo FROM impresora WHERE idImpresora = %s",
-            (idImpresora,)
+            """
+            SELECT
+                i.idImpresora AS id,
+                i.nombreImpresora,
+                i.modelo,
+                i.idAccesorio,
+                i.idCedis,
+                i.idPlanta,
+                i.idResu,
+                i.idTep,
+
+                a.idAccesorio AS acc_id,
+                a.nombreAccesorio AS acc_nombreAccesorio,
+                a.cantidad AS acc_cantidad,
+                a.idEstatus AS acc_idEstatus,
+                a.entrada AS acc_entrada,
+                a.idfactura AS acc_idfactura,
+
+                c.idCedis AS ced_id,
+                c.nombreCedis AS ced_nombreCedis,
+
+                p.idPlanta AS pla_id,
+                p.nombrePlanta AS pla_nombrePlanta,
+
+                r.idResu AS res_id,
+                r.nombreResu AS res_nombreResu,
+
+                t.idTep AS tep_id,
+                t.nombreTep AS tep_nombreTep
+            FROM impresora i
+            LEFT JOIN accesorio a ON i.idAccesorio = a.idAccesorio
+            LEFT JOIN cedis c ON i.idCedis = c.idCedis
+            LEFT JOIN planta p ON i.idPlanta = p.idPlanta
+            LEFT JOIN resurreccion r ON i.idResu = r.idResu
+            LEFT JOIN teps t ON i.idTep = t.idTep
+            WHERE i.idImpresora = %s
+            """,
+            (idImpresora,),
         )
         row = cur.fetchone()
     finally:
@@ -49,7 +158,7 @@ def get_impresora_by_id(idImpresora: int) -> Optional[Impresora]:
     if not row:
         return None
 
-    return Impresora(**row)
+    return Impresora(**_row_to_impresora_dict(row))
 
 def create_impresora(data: dict) -> dict:
     """Crea una impresora a partir de `data`, inserta en la BD y devuelve un dict."""

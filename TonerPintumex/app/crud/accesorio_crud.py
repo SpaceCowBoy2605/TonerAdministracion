@@ -19,11 +19,49 @@ try:
 except Exception:
     from models.accesorio import Accesorio
 
-def get_all_accesorio() -> Optional[Accesorio]:
+
+def _row_to_accesorio_dict(row: dict) -> dict:
+    out: dict = {k: row.get(k) for k in (
+        "id",
+        "nombreAccesorio",
+        "cantidad",
+        "idEstatus",
+        "entrada",
+        "idfactura",
+    )}
+
+    def attach(name: str, id_key: str, fields: dict[str, str]) -> None:
+        rel_id = row.get(id_key)
+        if rel_id is None:
+            return
+        out[name] = {"id": rel_id, **{k: row.get(v) for k, v in fields.items()}}
+
+    attach("estatus", "est_id", {"estatus": "est_estatus"})
+    attach("factura", "fac_id", {"fecha": "fac_fecha"})
+    return out
+
+def get_all_accesorio() -> Optional[list[Accesorio]]:
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idAccesorio AS id, nombreAccesorio, cantidad, idEstatus, entrada, idfactura FROM accesorio"
+            """
+            SELECT
+                a.idAccesorio AS id,
+                a.nombreAccesorio,
+                a.cantidad,
+                a.idEstatus,
+                a.entrada,
+                a.idfactura,
+
+                e.idEstatus AS est_id,
+                e.estatus AS est_estatus,
+
+                f.idfactura AS fac_id,
+                f.fecha AS fac_fecha
+            FROM accesorio a
+            LEFT JOIN estatus e ON a.idEstatus = e.idEstatus
+            LEFT JOIN factura f ON a.idfactura = f.idfactura
+            """
         )
         rows = cur.fetchall()
     finally:
@@ -32,7 +70,7 @@ def get_all_accesorio() -> Optional[Accesorio]:
     if not rows:
         return None
 
-    accesorios = [Accesorio(**row) for row in rows]
+    accesorios = [Accesorio(**_row_to_accesorio_dict(row)) for row in rows]
     return accesorios
 
 def get_accesorio_by_id(idAccesorio: int) -> Optional[Accesorio]:
@@ -40,7 +78,25 @@ def get_accesorio_by_id(idAccesorio: int) -> Optional[Accesorio]:
     cur = db.mydb.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT idAccesorio AS id, nombreAccesorio, cantidad, idEstatus, entrada, idfactura FROM accesorio WHERE idAccesorio = %s",
+            """
+            SELECT
+                a.idAccesorio AS id,
+                a.nombreAccesorio,
+                a.cantidad,
+                a.idEstatus,
+                a.entrada,
+                a.idfactura,
+
+                e.idEstatus AS est_id,
+                e.estatus AS est_estatus,
+
+                f.idfactura AS fac_id,
+                f.fecha AS fac_fecha
+            FROM accesorio a
+            LEFT JOIN estatus e ON a.idEstatus = e.idEstatus
+            LEFT JOIN factura f ON a.idfactura = f.idfactura
+            WHERE a.idAccesorio = %s
+            """ ,
             (idAccesorio,)
         )
         row = cur.fetchone()
@@ -50,7 +106,7 @@ def get_accesorio_by_id(idAccesorio: int) -> Optional[Accesorio]:
     if not row:
         return None
 
-    return Accesorio(**row)
+    return Accesorio(**_row_to_accesorio_dict(row))
 
 
 def create_accesorio(data: dict) -> dict:

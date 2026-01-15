@@ -2,6 +2,33 @@ from flask import Blueprint, jsonify
 
 imporesora_bp = Blueprint('Imporesora', __name__)
 
+
+def _dump_impresora(model):
+    """Serializa una impresora evitando duplicar ids cuando hay objetos anidados."""
+    if hasattr(model, "model_dump"):
+        data = model.model_dump()
+    else:
+        data = model.dict()
+
+    # Si viene el objeto anidado, no repetir el FK a nivel raíz
+    if data.get("accesorio") is not None:
+        data.pop("idAccesorio", None)
+    if data.get("cedis") is not None:
+        data.pop("idCedis", None)
+    if data.get("planta") is not None:
+        data.pop("idPlanta", None)
+    if data.get("resu") is not None:
+        data.pop("idResu", None)
+    if data.get("tep") is not None:
+        data.pop("idTep", None)
+
+    # Opcional: si el FK es null, no lo mandes
+    for k in ("idAccesorio", "idCedis", "idPlanta", "idResu", "idTep"):
+        if data.get(k) is None:
+            data.pop(k, None)
+
+    return data
+
 @imporesora_bp.route('/impresora', methods=['GET'])
 def api_get_all_impresoras():
 
@@ -9,7 +36,7 @@ def api_get_all_impresoras():
     impresoras = get_all_impresora()
     if not impresoras:
         return jsonify([]), 200
-    return jsonify([impresora.dict() for impresora in impresoras]), 200
+    return jsonify([_dump_impresora(impresora) for impresora in impresoras]), 200
 
 
 @imporesora_bp.route('/impresora/<int:id>', methods=['GET'])
@@ -19,7 +46,7 @@ def api_get_impresora(id):
     Impresora = get_impresora_by_id(id)
     if not Impresora:
         return jsonify({'error': 'No encontrado'}), 404
-    return jsonify(Impresora.dict()), 200
+    return jsonify(_dump_impresora(Impresora)), 200
 
 @imporesora_bp.route('/impresora/crear', methods=['POST'])
 def api_create_impresora():
