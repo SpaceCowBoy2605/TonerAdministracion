@@ -46,12 +46,14 @@ def create_solicitud_with_rules(data: dict) -> dict:
         nueva_cantidad = cantidad_actual - cantidad_solicitada
 
         # Determinar estatus según nueva cantidad y actualizar accesorio
-        if nueva_cantidad >= 10:
+        if nueva_cantidad >= 7:
             new_estatus = 1
         elif nueva_cantidad >= 3:
             new_estatus = 2
-        else:
+        elif nueva_cantidad == 1:
             new_estatus = 3
+        else:
+            new_estatus = 4
         cur.execute("UPDATE accesorio SET cantidad = %s, idEstatus = %s WHERE idAccesorio = %s", (nueva_cantidad, new_estatus, idAcc))
 
         # Preparar campos para insertar solicitud
