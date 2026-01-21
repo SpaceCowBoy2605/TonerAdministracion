@@ -28,6 +28,22 @@ def create_solicitud_with_rules(data: dict) -> dict:
         if idAcc is None or cantidad_solicitada is None:
             raise ValueError('idAccesorio y cantidad son requeridos')
 
+        try:
+            cantidad_solicitada = int(cantidad_solicitada)
+        except Exception:
+            raise ValueError('cantidad debe ser un número')
+
+        if cantidad_solicitada <= 0:
+            raise ValueError('cantidad debe ser mayor a 0')
+
+        def _calc_idestatus(cantidad: int) -> int:
+            # Catálogo (según BD): 1=Suficiente, 2=Bajo, 3=Solicitar mas, 4=Reservado
+            if cantidad >= 6:
+                return 1
+            if cantidad >= 3:
+                return 2
+            return 3
+
         # Bloquear fila del accesorio para evitar race conditions
         # Obtener también idfactura para registro en historial
         cur.execute("SELECT cantidad, idfactura FROM accesorio WHERE idAccesorio = %s FOR UPDATE", (idAcc,))
@@ -46,15 +62,11 @@ def create_solicitud_with_rules(data: dict) -> dict:
         nueva_cantidad = cantidad_actual - cantidad_solicitada
 
         # Determinar estatus según nueva cantidad y actualizar accesorio
-        if nueva_cantidad >= 7:
-            new_estatus = 1
-        elif nueva_cantidad >= 3:
-            new_estatus = 2
-        elif nueva_cantidad == 1:
-            new_estatus = 3
-        else:
-            new_estatus = 4
-        cur.execute("UPDATE accesorio SET cantidad = %s, idEstatus = %s WHERE idAccesorio = %s", (nueva_cantidad, new_estatus, idAcc))
+        new_estatus = _calc_idestatus(int(nueva_cantidad))
+        cur.execute(
+            "UPDATE accesorio SET cantidad = %s, idEstatus = %s WHERE idAccesorio = %s",
+            (nueva_cantidad, new_estatus, idAcc)
+        )
 
         # Preparar campos para insertar solicitud
         fecha = data.get('fechaSolicitud')

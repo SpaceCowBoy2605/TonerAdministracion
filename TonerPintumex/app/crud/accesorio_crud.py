@@ -30,13 +30,43 @@ def _row_to_accesorio_dict(row: dict) -> dict:
         "idfactura",
     )}
 
+    def _calc_idestatus(cantidad: int) -> int:
+        # Catálogo (según BD): 1=Suficiente, 2=Bajo, 3=Solicitar mas, 4=Reservado
+        if cantidad >= 6:
+            return 1
+        if cantidad >= 3:
+            return 2
+        return 3
+
+    def _label_for_idestatus(id_estatus: int) -> str:
+        return {
+            1: "Sufuciente",
+            2: "Bajo",
+            3: "Solcitar mas",
+            4: "Reservado",
+        }.get(id_estatus, "")
+
     def attach(name: str, id_key: str, fields: dict[str, str]) -> None:
         rel_id = row.get(id_key)
         if rel_id is None:
             return
         out[name] = {"id": rel_id, **{k: row.get(v) for k, v in fields.items()}}
 
-    attach("estatus", "est_id", {"estatus": "est_estatus"})
+    # Normalizar estatus desde cantidad para evitar inversiones por datos viejos.
+    try:
+        if out.get("cantidad") is not None:
+            computed_id = _calc_idestatus(int(out["cantidad"]))
+            out["idEstatus"] = computed_id
+            joined_id = row.get("est_id")
+            joined_label = row.get("est_estatus")
+            out["estatus"] = {
+                "id": computed_id,
+                "estatus": joined_label if joined_id == computed_id else _label_for_idestatus(computed_id),
+            }
+        else:
+            attach("estatus", "est_id", {"estatus": "est_estatus"})
+    except Exception:
+        attach("estatus", "est_id", {"estatus": "est_estatus"})
     attach("factura", "fac_id", {"fecha": "fac_fecha"})
     return out
 
@@ -170,8 +200,8 @@ def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
         except Exception:
             delta = 0
         accesorio.cantidad = (cantidad_antigua or 0) + delta
-        # Calcular estatus según la nueva cantidad (>=10:1, 3-9:2, <3:3)
-        if accesorio.cantidad >= 10:
+        # Catálogo (según BD): 1=Suficiente, 2=Bajo, 3=Solicitar mas, 4=Reservado
+        if accesorio.cantidad >= 6:
             accesorio.idEstatus = 1
         elif accesorio.cantidad >= 3:
             accesorio.idEstatus = 2
@@ -201,16 +231,6 @@ def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
                     "INSERT INTO historialAccesorios (idfactura, idAccesorio, fecha, cantidad) VALUES (%s, %s, %s, %s)",
                     (idfactura_antigua, idAccesorio, fecha, movimiento)
                 )
-            # Asegurarse de que idEstatus esté actualizado también si no vino en data
-            # si el usuario pasó idEstatus explícito, lo respetamos; si no, ya lo hemos calculado arriba cuando se proporcionó 'cantidad'
-            if 'idEstatus' not in data:
-                # recalcular por si la cantidad fue modificada por otros campos
-                if accesorio.cantidad >= 10:
-                    accesorio.idEstatus = 1
-                elif accesorio.cantidad >= 3:
-                    accesorio.idEstatus = 2
-                else:
-                    accesorio.idEstatus = 3
         except Exception:
             # Si falla el registro en historial, hacemos rollback para asegurar consistencia
             db.mydb.rollback()
