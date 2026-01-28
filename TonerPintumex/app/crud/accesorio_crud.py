@@ -3,6 +3,9 @@ import os
 import json
 import logging
 from datetime import datetime
+import io
+import base64
+from flask import url_for, current_app, has_app_context
 
 try:
     import qrcode
@@ -155,12 +158,21 @@ def create_accesorio(data: dict) -> dict:
         cur.close()
 
     qr_path = None
+    qr_base64 = None
     try:
         if qrcode is None:
             logging.warning("qrcode library not available — no QR will be generated for accesorio %s", getattr(accesorio, 'id', None))
         else:
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-            qr_dir = os.path.join(base_dir, 'accesorio_qrcodes')
+            # Determinar carpeta static de la app (cuando hay contexto), sino caer a ../static
+            try:
+                if has_app_context():
+                    static_folder = current_app.static_folder
+                else:
+                    static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+            except Exception:
+                static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+
+            qr_dir = os.path.join(static_folder, 'accesorio_qrcodes')
             os.makedirs(qr_dir, exist_ok=True)
             # Contenido multilínea con etiquetas
             content = (
@@ -176,12 +188,37 @@ def create_accesorio(data: dict) -> dict:
             filename = f"accesorio_{accesorio.id}.png"
             qr_path = os.path.join(qr_dir, filename)
             img.save(qr_path)
+                        # También generar la imagen en memoria y codificarla en base64
+            try:
+                buf = io.BytesIO()
+                img.save(buf, format='PNG')
+                buf.seek(0)
+                b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+                qr_base64 = f"data:image/png;base64,{b64}"
+            except Exception:
+                logging.exception("Failed to encode QR to base64 for accesorio %s", getattr(accesorio, 'id', None))
+                qr_base64 = None
     except Exception:
         logging.exception("Failed to generate QR for accesorio %s", getattr(accesorio, 'id', None))
         qr_path = None
+        qr_base64 = None
+
+    qr_url = None
+    if qr_path:
+        try:
+            if has_app_context():
+                # Servir desde /static/accesorio_qrcodes/<filename>
+                qr_url = url_for('static', filename=f"accesorio_qrcodes/{filename}", _external=True)
+            else:
+                qr_url = None
+        except Exception:
+            logging.exception("Failed to build qr_url for accesorio %s", getattr(accesorio, 'id', None))
+            qr_url = None
 
     result = accesorio.dict()
     result['qr_path'] = qr_path
+    result['qr_base64'] = qr_base64
+    result["qr_url"] = qr_url
     return result
 
 def update_accesorio(idAccesorio: int, data: dict) -> Optional[dict]:
