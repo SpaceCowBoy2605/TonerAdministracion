@@ -28,3 +28,19 @@ def get_cedis_by_id(idCedis: int) -> Optional[Cedis]:
         return None
 
     return Cedis(**row)
+
+def get_all_cedis() -> list[Cedis]:
+    """Recupera todos los cedis usando la conexión definida en app/db.py.
+
+    Retorna una lista de instancias de `Cedis`.
+    """
+    cur = db.mydb.cursor(dictionary=True)
+    try:
+        cur.execute(
+            "SELECT idCedis AS id, nombreCedis FROM cedis"
+        )
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    return [Cedis(**row) for row in rows]

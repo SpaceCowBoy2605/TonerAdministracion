@@ -11,3 +11,12 @@ def api_get_resurreccion(id):
     if not resurreccion:
         return jsonify({'error': 'No encontrado'}), 404
     return jsonify(resurreccion.dict()), 200
+
+@resurreccion_bp.route('/resurreccion', methods=['GET'])
+def api_get_all_resurreccion():
+    # importe aquí para evitar importaciones circulares
+    from crud.resurrecion_crud import get_all_resurreccion
+    resurreccion_list = get_all_resurreccion()
+    if not resurreccion_list:
+        return jsonify({'error': 'No encontrado'}), 404
+    return jsonify([resu.dict() for resu in resurreccion_list]), 200

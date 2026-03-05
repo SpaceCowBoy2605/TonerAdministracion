@@ -26,3 +26,19 @@ def get_resurrecion_by_id(idResu: int) -> Optional[Resurrecion]:
         return None
 
     return Resurrecion(**row)
+
+def get_all_resurreccion() -> Optional[Resurrecion]:
+    cur = db.mydb.cursor(dictionary=True)
+    try:
+        cur.execute(
+            "SELECT idResu AS id, nombreResu FROM resurreccion"
+        )
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    if not rows:
+        return None
+
+    resus = [Resurrecion(**row) for row in rows]
+    return resus

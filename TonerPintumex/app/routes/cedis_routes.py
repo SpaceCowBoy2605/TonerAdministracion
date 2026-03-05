@@ -10,3 +10,12 @@ def api_get_cedis(id):
     if not Cedis:
         return jsonify({'error': 'No encontrado'}), 404
     return jsonify(Cedis.dict()), 200
+
+@cedis_bp.route('/cedis', methods=['GET'])
+def api_get_all_cedis():
+    # importe aquí para evitar importaciones circulares
+    from crud.cedis_crud import get_all_cedis
+    Cedis_list = get_all_cedis()
+    if not Cedis_list:
+        return jsonify({'error': 'No encontrado'}), 404
+    return jsonify([cedis.dict() for cedis in Cedis_list]), 200

@@ -26,3 +26,19 @@ def get_tep_by_id(idTep: int) -> Optional[Tep]:
         return None
 
     return Tep(**row)
+
+def get_all_tep() -> Optional[Tep]:
+    cur = db.mydb.cursor(dictionary=True)
+    try:
+        cur.execute(
+            "SELECT idTep AS id, nombreTep FROM teps"
+        )
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    if not rows:
+        return None
+
+    teps = [Tep(**row) for row in rows]
+    return teps
