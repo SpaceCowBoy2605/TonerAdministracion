@@ -15,6 +15,16 @@ app = Flask(__name__)
 CORS(app)
 
 
+@app.teardown_appcontext
+def _close_db_connection(_exc):
+    try:
+        from app import db
+        db.mydb.close()
+    except Exception:
+        # Si no hay conexión o falló el import, no bloqueamos el teardown.
+        return
+
+
 @app.route('/inicio')
 def home():
     return "Hello, Flask!"

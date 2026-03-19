@@ -23,10 +23,17 @@ def create_solicitud_with_rules(data: dict) -> dict:
     """
     cur = db.mydb.cursor(dictionary=True)
     try:
-        idAcc = data.get('idAccesorio')
-        cantidad_solicitada = data.get('cantidad')
+        # Soporta alias típicos del front para evitar errores por naming.
+        idAcc = data.get('idAccesorio', data.get('idAcc'))
+        cantidad_solicitada = data.get(
+            'cantidad',
+            data.get('cantidad_solicitada', data.get('cantidadSolicitada'))
+        )
         if idAcc is None or cantidad_solicitada is None:
-            raise ValueError('idAccesorio y cantidad son requeridos')
+            raise ValueError(
+                'idAccesorio y cantidad son requeridos '
+                '(también se aceptan: idAcc, cantidadSolicitada)'
+            )
 
         try:
             cantidad_solicitada = int(cantidad_solicitada)
@@ -117,6 +124,12 @@ def create_solicitud_with_rules(data: dict) -> dict:
         # Validar con el modelo pydantic
         solicitud = Solicitudes(**solicitud_data)
         return solicitud.dict()
+    except ValueError:
+        try:
+            db.mydb.rollback()
+        except Exception:
+            logging.exception('Failed to rollback transaction')
+        raise
     except Exception:
         try:
             db.mydb.rollback()
