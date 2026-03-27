@@ -61,7 +61,7 @@ def _dump_solicitud(model) -> dict:
 @solicitudes_bp.route('/solicitudes', methods=['GET'])
 def api_get_all_solicitudes():
     # importe aquí para evitar importaciones circulares
-    from crud.solicitudes_crud import get_all_solicitudes
+    from app.crud.solicitudes_crud import get_all_solicitudes
     solicitudes = get_all_solicitudes()
     if not solicitudes:
         return jsonify([]), 200
@@ -70,7 +70,7 @@ def api_get_all_solicitudes():
 @solicitudes_bp.route('/solicitudes/<int:id>', methods=['GET'])
 def api_get_solicitudes(id):
     # importe aquí para evitar importaciones circulares
-    from crud.solicitudes_crud import get_solicitudes_by_id
+    from app.crud.solicitudes_crud import get_solicitudes_by_id
     solicitud = get_solicitudes_by_id(id)
     if not solicitud:
         return jsonify({'error': 'No encontrado'}), 404
@@ -95,7 +95,7 @@ def api_create_solicitudes():
 @solicitudes_bp.route('/solicitudes/actualizar/<int:id>', methods=['PUT'])
 def api_update_solicitudes(id):
     # importe aquí para evitar importaciones circulares
-    from crud.solicitudes_crud import update_solicitudes
+    from app.crud.solicitudes_crud import update_solicitudes
     from flask import request
     data = request.get_json()
     if not data:
@@ -108,7 +108,7 @@ def api_update_solicitudes(id):
 @solicitudes_bp.route('/solicitudes/eliminar/<int:id>', methods=['DELETE'])
 def api_delete_solicitudes(id):
     # importe aquí para evitar importaciones circulares
-    from crud.solicitudes_crud import delete_solicitudes
+    from app.crud.solicitudes_crud import delete_solicitudes
     deleted_solicitud = delete_solicitudes(id)
     if not deleted_solicitud:
         return jsonify({"error": "Solicitud no encontrada"}), 404

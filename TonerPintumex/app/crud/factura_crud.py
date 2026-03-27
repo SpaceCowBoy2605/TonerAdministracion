@@ -8,7 +8,7 @@ except Exception:
 try:
     from app.models.factura import Factura
 except Exception:
-    from models.factura import Factura
+    from app.models.factura import Factura
 
 def get_factura_by_id(idfactura: int) -> Optional[Factura]:
     cur = db.mydb.cursor(dictionary=True)

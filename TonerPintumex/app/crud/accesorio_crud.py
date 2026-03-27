@@ -20,7 +20,7 @@ except Exception:
 try:
     from app.models.accesorio import Accesorio
 except Exception:
-    from models.accesorio import Accesorio
+    from app.models.accesorio import Accesorio
 
 
 def _row_to_accesorio_dict(row: dict) -> dict:

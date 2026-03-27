@@ -40,12 +40,12 @@ try:
     from app.models.tep import Tep  # noqa: F401
 except Exception:
     try:
-        from models.accesorio import Accesorio  # type: ignore  # noqa: F401
-        from models.impresora import Impresora  # type: ignore  # noqa: F401
-        from models.planta import Planta  # type: ignore  # noqa: F401
-        from models.resu import Resurrecion  # type: ignore  # noqa: F401
-        from models.cedis import Cedis  # type: ignore  # noqa: F401
-        from models.tep import Tep  # type: ignore  # noqa: F401
+        from app.models.accesorio import Accesorio  # type: ignore  # noqa: F401
+        from app.models.impresora import Impresora  # type: ignore  # noqa: F401
+        from app.models.planta import Planta  # type: ignore  # noqa: F401
+        from app.models.resu import Resurrecion  # type: ignore  # noqa: F401
+        from app.models.cedis import Cedis  # type: ignore  # noqa: F401
+        from app.models.tep import Tep  # type: ignore  # noqa: F401
     except Exception:
         pass
 

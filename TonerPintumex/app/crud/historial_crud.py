@@ -11,7 +11,7 @@ except Exception:
 try:
     from app.models.historial import HistorialAccesorios
 except Exception:
-    from models.historial import HistorialAccesorios
+    from app.models.historial import HistorialAccesorios
 
 def get_all_historial() -> Optional[HistorialAccesorios]:
     cur = db.mydb.cursor(dictionary=True)

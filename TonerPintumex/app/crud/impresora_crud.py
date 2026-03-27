@@ -15,7 +15,7 @@ except Exception:
 try:
     from app.models.impresora import Impresora
 except Exception:
-    from models.impresora import Impresora
+    from app.models.impresora import Impresora
 
 def _row_to_impresora_dict(row: dict) -> dict:
     """Convierte una fila (con aliases de JOIN) a un dict compatible con `Impresora`."""

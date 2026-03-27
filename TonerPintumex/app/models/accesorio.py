@@ -24,8 +24,8 @@ try:
     from app.models.factura import Factura  # noqa: F401
 except Exception:
     try:
-        from models.estatus import Estatus  # type: ignore  # noqa: F401
-        from models.factura import Factura  # type: ignore  # noqa: F401
+        from app.models.estatus import Estatus  # type: ignore  # noqa: F401
+        from app.models.factura import Factura  # type: ignore  # noqa: F401
     except Exception:
         pass
 

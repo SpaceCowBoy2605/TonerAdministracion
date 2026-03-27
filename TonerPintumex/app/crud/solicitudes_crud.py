@@ -11,7 +11,7 @@ except Exception:
 try:
     from app.models.solicitudes import Solicitudes
 except Exception:
-    from models.solicitudes import Solicitudes
+    from app.models.solicitudes import Solicitudes
 
 
 def _row_to_solicitud_dict(row: dict) -> dict:

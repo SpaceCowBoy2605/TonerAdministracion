@@ -8,7 +8,7 @@ except Exception:
 try:
     from app.models.planta import Planta
 except Exception:
-    from models.planta import Planta
+    from app.models.planta import Planta
 
 def get_all_planta() -> Optional[Planta]:
     cur = db.mydb.cursor(dictionary=True)

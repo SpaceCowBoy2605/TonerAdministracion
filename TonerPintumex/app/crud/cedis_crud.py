@@ -7,7 +7,7 @@ except Exception:
 try:
     from app.models.cedis import Cedis
 except Exception:
-    from models.cedis import Cedis
+    from app.models.cedis import Cedis
 
 def get_cedis_by_id(idCedis: int) -> Optional[Cedis]:
     """Recupera un cedis por id usando la conexión definida en app/db.py.

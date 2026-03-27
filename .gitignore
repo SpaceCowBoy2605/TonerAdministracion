@@ -12,7 +12,10 @@
 *.tiff
 *.heic
 *.ico
-
+*.dockerignore
+*.yml
+*Dockerfile
+*.requirements.txt
 # QR code output folders
 impresora_qrcodes/
 accesorio_qrcodes/

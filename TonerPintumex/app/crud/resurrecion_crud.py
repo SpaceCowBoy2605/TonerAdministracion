@@ -8,7 +8,7 @@ except Exception:
 try:
     from app.models.resu import Resurrecion
 except Exception:
-    from models.resu import Resurrecion
+    from app.models.resu import Resurrecion
 
 def get_resurrecion_by_id(idResu: int) -> Optional[Resurrecion]:
 

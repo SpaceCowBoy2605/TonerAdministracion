@@ -8,7 +8,7 @@ except Exception:
 try:
     from app.models.tep import Tep
 except Exception:
-    from models.tep import Tep
+    from app.models.tep import Tep
 
 def get_tep_by_id(idTep: int) -> Optional[Tep]:
 

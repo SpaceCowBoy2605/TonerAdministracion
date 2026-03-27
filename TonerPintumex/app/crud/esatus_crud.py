@@ -8,7 +8,7 @@ except Exception:
 try:
     from app.models.estatus import Estatus
 except Exception:
-    from models.estatus import Estatus  
+    from app.models.estatus import Estatus  
 
 def get_estatus_by_id(idEstatus: int) -> Optional[Estatus]:
     """Recupera un estatus por id usando la conexión definida en app/db.py.

@@ -11,6 +11,10 @@ _ROOT = os.path.dirname(os.path.dirname(__file__))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+_APP = os.path.dirname(__file__)
+if _APP not in sys.path:
+    sys.path.insert(0, _APP)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -62,4 +66,7 @@ _register_route_blueprints()
 
 
 if __name__ == '__main__':
-    app.run()
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', '5000'))
+    debug = os.getenv('FLASK_DEBUG', '').strip() in {'1', 'true', 'True'}
+    app.run(host=host, port=port, debug=debug)

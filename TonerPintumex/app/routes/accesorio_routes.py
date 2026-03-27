@@ -24,7 +24,7 @@ def _dump_accesorio(model):
 @accesorio_bp.route('/accesorio', methods=['GET'])
 def api_get_all_accesorios():
     # importe aquí para evitar importaciones circulares
-    from crud.accesorio_crud import get_all_accesorio
+    from app.crud.accesorio_crud import get_all_accesorio
     accesorios = get_all_accesorio()
     if not accesorios:
         return jsonify([]), 200
@@ -33,7 +33,7 @@ def api_get_all_accesorios():
 @accesorio_bp.route('/accesorio/<int:id>', methods=['GET'])
 def api_get_accesorio(id):
     # importe aquí para evitar importaciones circulares
-    from crud.accesorio_crud import get_accesorio_by_id
+    from app.crud.accesorio_crud import get_accesorio_by_id
     accesorio = get_accesorio_by_id(id)
     if not accesorio:
         return jsonify({'error': 'No encontrado'}), 404
@@ -42,7 +42,7 @@ def api_get_accesorio(id):
 @accesorio_bp.route('/accesorio/crear', methods=['POST'])
 def api_create_accesorio():
     # importe aquí para evitar importaciones circulares
-    from crud.accesorio_crud import create_accesorio
+    from app.crud.accesorio_crud import create_accesorio
     from flask import request
     data = request.get_json()
     if not data:
@@ -54,7 +54,7 @@ def api_create_accesorio():
 @accesorio_bp.route('/accesorio/actualizar/<int:id>', methods=['PUT'])
 def api_update_accesorio(id):
     # importe aquí para evitar importaciones circulares
-    from crud.accesorio_crud import update_accesorio
+    from app.crud.accesorio_crud import update_accesorio
     from flask import request
     data = request.get_json()
     if not data:
@@ -67,7 +67,7 @@ def api_update_accesorio(id):
 @accesorio_bp.route('/accesorio/eliminar/<int:id>', methods=['DELETE'])
 def api_delete_accesorio(id):
     # importe aquí para evitar importaciones circulares
-    from crud.accesorio_crud import delete_accesorio
+    from app.crud.accesorio_crud import delete_accesorio
     deleted_accesorio = delete_accesorio(id)
     if not deleted_accesorio:
         return jsonify({"error": "Accesorio no encontrado"}), 404

@@ -9,7 +9,7 @@ except Exception:
 try:
     from app.models.solicitudes import Solicitudes
 except Exception:
-    from models.solicitudes import Solicitudes
+    from app.models.solicitudes import Solicitudes
 
 
 def create_solicitud_with_rules(data: dict) -> dict:
